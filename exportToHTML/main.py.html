@@ -1,0 +1,420 @@
+<html>
+<head>
+<title>main.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #0033b3;}
+.s1 { color: #080808;}
+.s2 { color: #1750eb;}
+.s3 { color: #8c8c8c; font-style: italic;}
+.s4 { color: #008080; font-weight: bold;}
+.s5 { color: #0037a6;}
+</style>
+</head>
+<body bgcolor="#ffffff">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#c0c0c0" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+main.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">pygame, sys, random</span>
+
+
+<span class="s0">def </span><span class="s1">draw_floor():</span>
+    <span class="s1">screen.blit(floor_surface, (floor_x_pos, </span><span class="s2">0</span><span class="s1">))</span>
+    <span class="s1">screen.blit(floor_surface, (floor_x_pos + </span><span class="s2">1280</span><span class="s1">, </span><span class="s2">0</span><span class="s1">))</span>
+
+
+<span class="s0">def </span><span class="s1">create_bird():</span>
+    <span class="s1">random_bird_pos = random.choice(bird_altitude)</span>
+    <span class="s1">bird = bird_surface.get_rect(midtop=(</span><span class="s2">1300</span><span class="s1">, random_bird_pos))</span>
+    <span class="s0">return </span><span class="s1">bird</span>
+
+
+<span class="s0">def </span><span class="s1">create_pipe():</span>
+    <span class="s1">random_pipe_pos = random.choice(pipe_height)</span>
+    <span class="s1">bottom_pipe = pipe_surface.get_rect(midtop=(</span><span class="s2">1300</span><span class="s1">, random_pipe_pos))</span>
+    <span class="s1">top_pipe = pipe_surface.get_rect(midbottom=(</span><span class="s2">1300</span><span class="s1">, random_pipe_pos - </span><span class="s2">500</span><span class="s1">))</span>
+    <span class="s0">return </span><span class="s1">bottom_pipe, top_pipe</span>
+
+
+<span class="s0">def </span><span class="s1">move_birds(birds):</span>
+    <span class="s0">for </span><span class="s1">bird </span><span class="s0">in </span><span class="s1">birds:</span>
+        <span class="s1">bird.centerx -= </span><span class="s2">8 </span><span class="s1">* speed_factor</span>
+    <span class="s1">visible_birds = [bird </span><span class="s0">for </span><span class="s1">bird </span><span class="s0">in </span><span class="s1">birds </span><span class="s0">if </span><span class="s1">bird.right &gt; -</span><span class="s2">50</span><span class="s1">]</span>
+    <span class="s0">return </span><span class="s1">visible_birds</span>
+
+
+<span class="s0">def </span><span class="s1">move_pipes(pipes):</span>
+    <span class="s0">for </span><span class="s1">pipe </span><span class="s0">in </span><span class="s1">pipes:</span>
+        <span class="s1">pipe.centerx -= </span><span class="s2">5 </span><span class="s1">* speed_factor</span>
+    <span class="s1">visible_pipes = [pipe </span><span class="s0">for </span><span class="s1">pipe </span><span class="s0">in </span><span class="s1">pipes </span><span class="s0">if </span><span class="s1">pipe.right &gt; -</span><span class="s2">50</span><span class="s1">]</span>
+    <span class="s0">return </span><span class="s1">visible_pipes</span>
+
+
+<span class="s0">def </span><span class="s1">draw_birds(birds):</span>
+    <span class="s0">for </span><span class="s1">bird </span><span class="s0">in </span><span class="s1">birds:</span>
+        <span class="s1">screen.blit(bird_surface, bird)</span>
+
+
+<span class="s0">def </span><span class="s1">draw_pipes(pipes):</span>
+    <span class="s0">for </span><span class="s1">pipe </span><span class="s0">in </span><span class="s1">pipes:</span>
+        <span class="s0">if </span><span class="s1">pipe.bottom &gt;= </span><span class="s2">720</span><span class="s1">:</span>
+            <span class="s1">screen.blit(pipe_surface, pipe)</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s1">flip_pipe = pygame.transform.flip(pipe_surface, </span><span class="s0">False</span><span class="s1">, </span><span class="s0">True</span><span class="s1">)</span>
+            <span class="s1">screen.blit(flip_pipe, pipe)</span>
+
+
+<span class="s0">def </span><span class="s1">check_collision_bird(birds):</span>
+    <span class="s0">global </span><span class="s1">death</span>
+    <span class="s0">for </span><span class="s1">bird </span><span class="s0">in </span><span class="s1">birds:</span>
+        <span class="s0">if </span><span class="s1">mc_rect.colliderect(bird):</span>
+            <span class="s1">death = </span><span class="s0">True</span>
+            <span class="s1">death_sound.play()</span>
+            <span class="s3"># pygame.mixer.music.fadeout(750)</span>
+            <span class="s0">return False</span>
+    <span class="s0">return True</span>
+
+
+<span class="s0">def </span><span class="s1">check_collision(pipes):</span>
+    <span class="s0">global </span><span class="s1">death</span>
+    <span class="s0">for </span><span class="s1">pipe </span><span class="s0">in </span><span class="s1">pipes:</span>
+        <span class="s0">if </span><span class="s1">mc_rect.colliderect(pipe):</span>
+            <span class="s1">death = </span><span class="s0">True</span>
+            <span class="s1">death_sound.play()</span>
+            <span class="s3"># pygame.mixer.music.fadeout(750)</span>
+            <span class="s0">return False</span>
+    <span class="s0">return True</span>
+
+
+<span class="s0">def </span><span class="s1">bg_and_music_change():</span>
+    <span class="s0">if </span><span class="s1">bg_index == </span><span class="s2">0</span><span class="s1">:</span>
+        <span class="s1">pygame.mixer.music.load(</span><span class="s4">&quot;assets/sfx/bg_music_swamp.mp3&quot;</span><span class="s1">)</span>
+    <span class="s0">elif </span><span class="s1">bg_index == </span><span class="s2">1</span><span class="s1">:</span>
+        <span class="s1">pygame.mixer.music.load(</span><span class="s4">&quot;assets/sfx/bg_music_war.mp3&quot;</span><span class="s1">)</span>
+    <span class="s0">elif </span><span class="s1">bg_index == </span><span class="s2">2</span><span class="s1">:</span>
+        <span class="s1">pygame.mixer.music.load(</span><span class="s4">&quot;assets/sfx/bg_music_snow.mp3&quot;</span><span class="s1">)</span>
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">pygame.mixer.music.load(</span><span class="s4">&quot;assets/sfx/bg_music_desert.mp3&quot;</span><span class="s1">)</span>
+    <span class="s1">pygame.mixer.music.play(-</span><span class="s2">1</span><span class="s1">)</span>
+    <span class="s1">new_bg = bg_frames[bg_index]</span>
+    <span class="s1">new_bg = pygame.transform.scale(new_bg, (</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))</span>
+    <span class="s0">return </span><span class="s1">new_bg</span>
+
+
+<span class="s0">def </span><span class="s1">floor_change():</span>
+    <span class="s1">new_floor = floor_frames[floor_index]</span>
+    <span class="s1">new_floor = pygame.transform.scale(new_floor, (</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))</span>
+    <span class="s0">return </span><span class="s1">new_floor</span>
+
+
+<span class="s0">def </span><span class="s1">mc_animation():</span>
+    <span class="s1">new_mc = mc_frames[mc_index]</span>
+    <span class="s1">new_mc = pygame.transform.scale(new_mc, (</span><span class="s2">130</span><span class="s1">, </span><span class="s2">150</span><span class="s1">))</span>
+    <span class="s1">new_mc_rect = new_mc.get_rect(center=(</span><span class="s2">100</span><span class="s1">, mc_rect.centery))</span>
+    <span class="s0">return </span><span class="s1">new_mc, new_mc_rect</span>
+
+
+<span class="s0">def </span><span class="s1">mc_animation_jump():</span>
+    <span class="s1">new_mc = mc_jump_frames[mc_jump_index]</span>
+    <span class="s1">new_mc = pygame.transform.scale(new_mc, (</span><span class="s2">130</span><span class="s1">, </span><span class="s2">150</span><span class="s1">))</span>
+    <span class="s1">new_mc_rect = new_mc.get_rect(center=(</span><span class="s2">100</span><span class="s1">, mc_rect.centery))</span>
+    <span class="s0">return </span><span class="s1">new_mc, new_mc_rect</span>
+
+
+<span class="s0">def </span><span class="s1">mc_animation_death():</span>
+    <span class="s1">new_mc = mc_death_frames[mc_death_index]</span>
+    <span class="s1">new_mc = pygame.transform.scale(new_mc, (</span><span class="s2">170</span><span class="s1">, </span><span class="s2">150</span><span class="s1">))</span>
+    <span class="s1">new_mc_rect = new_mc.get_rect(center=(</span><span class="s2">100</span><span class="s1">, mc_rect.centery))</span>
+    <span class="s0">return </span><span class="s1">new_mc, new_mc_rect</span>
+
+
+<span class="s0">def </span><span class="s1">score_display(game_state):</span>
+    <span class="s0">if </span><span class="s1">game_state == </span><span class="s4">'main_game'</span><span class="s1">:</span>
+        <span class="s1">score_surface = game_font.render(</span><span class="s4">f&quot;Score: </span><span class="s5">{</span><span class="s1">(int(score))</span><span class="s5">}</span><span class="s4">&quot;</span><span class="s1">, </span><span class="s0">True</span><span class="s1">, (</span><span class="s2">255</span><span class="s1">, </span><span class="s2">255</span><span class="s1">, </span><span class="s2">255</span><span class="s1">))</span>
+        <span class="s1">score_rect = score_surface.get_rect(center=(</span><span class="s2">630</span><span class="s1">, </span><span class="s2">75</span><span class="s1">))</span>
+        <span class="s1">screen.blit(score_surface, score_rect)</span>
+
+    <span class="s0">if </span><span class="s1">game_state == </span><span class="s4">'game_over'</span><span class="s1">:</span>
+        <span class="s1">high_score_surface = game_font.render(</span><span class="s4">f&quot;High Score: </span><span class="s5">{</span><span class="s1">(int(high_score))</span><span class="s5">}</span><span class="s4">&quot;</span><span class="s1">, </span><span class="s0">True</span><span class="s1">, (</span><span class="s2">255</span><span class="s1">, </span><span class="s2">255</span><span class="s1">, </span><span class="s2">250</span><span class="s1">))</span>
+        <span class="s1">high_score_rect = high_score_surface.get_rect(center=(</span><span class="s2">650</span><span class="s1">, </span><span class="s2">550</span><span class="s1">))</span>
+        <span class="s1">screen.blit(high_score_surface, high_score_rect)</span>
+
+
+<span class="s0">def </span><span class="s1">update_score(score, high_score):</span>
+    <span class="s0">if </span><span class="s1">score &gt; high_score:</span>
+        <span class="s1">high_score = score</span>
+    <span class="s0">return </span><span class="s1">high_score</span>
+
+
+<span class="s0">def </span><span class="s1">pipe_score_check():</span>
+    <span class="s0">global </span><span class="s1">score, can_score</span>
+
+    <span class="s0">if </span><span class="s1">pipe_list:</span>
+        <span class="s0">for </span><span class="s1">pipe </span><span class="s0">in </span><span class="s1">pipe_list:</span>
+            <span class="s0">if </span><span class="s2">95 </span><span class="s1">&lt; pipe.centerx &lt; </span><span class="s2">105 </span><span class="s0">and </span><span class="s1">can_score == </span><span class="s0">True</span><span class="s1">:</span>
+                <span class="s1">can_score = </span><span class="s0">False</span>
+                <span class="s1">score += </span><span class="s2">1</span>
+                <span class="s1">score_sound.play()</span>
+            <span class="s0">if </span><span class="s1">pipe.centerx &lt; </span><span class="s2">0</span><span class="s1">:</span>
+                <span class="s1">can_score = </span><span class="s0">True</span>
+
+
+<span class="s3"># General Setup</span>
+<span class="s1">pygame.init()</span>
+<span class="s1">pygame.display.set_caption(</span><span class="s4">&quot;Steam Man&quot;</span><span class="s1">)</span>
+<span class="s1">screen = pygame.display.set_mode((</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))  </span><span class="s3"># Width, Height</span>
+<span class="s1">clock = pygame.time.Clock()</span>
+<span class="s1">game_font = pygame.font.Font(</span><span class="s4">&quot;visitor1.ttf&quot;</span><span class="s1">, </span><span class="s2">60</span><span class="s1">)</span>
+<span class="s1">game_font.set_underline(</span><span class="s0">True</span><span class="s1">)</span>
+<span class="s1">game_font.set_italic(</span><span class="s0">True</span><span class="s1">)</span>
+
+<span class="s1">cover_surface = pygame.image.load(</span><span class="s4">&quot;assets/cover.png&quot;</span><span class="s1">).convert_alpha()</span>
+<span class="s1">game_icon = pygame.image.load(</span><span class="s4">&quot;assets/mc_run/mc1.png&quot;</span><span class="s1">)</span>
+<span class="s1">pygame.display.set_icon(game_icon)  </span><span class="s3"># Game Icon</span>
+
+<span class="s1">bg_surface_swamp = pygame.image.load(</span><span class="s4">&quot;assets/backgrounds/bg_swamp.png&quot;</span><span class="s1">).convert()</span>
+<span class="s1">bg_surface_war = pygame.image.load(</span><span class="s4">&quot;assets/backgrounds/bg_war.png&quot;</span><span class="s1">).convert()</span>
+<span class="s1">bg_surface_snow = pygame.image.load(</span><span class="s4">&quot;assets/backgrounds/bg_snow.png&quot;</span><span class="s1">).convert()</span>
+<span class="s1">bg_surface_desert = pygame.image.load(</span><span class="s4">&quot;assets/backgrounds/bg_desert.png&quot;</span><span class="s1">).convert()</span>
+<span class="s1">bg_frames = [bg_surface_swamp, bg_surface_war, bg_surface_snow, bg_surface_desert]</span>
+<span class="s1">bg_index = </span><span class="s2">0</span>
+<span class="s1">bg_surface = bg_frames[bg_index]</span>
+<span class="s1">bg_surface = pygame.transform.scale(bg_surface, (</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))</span>
+
+<span class="s1">BG_CHANGE = pygame.USEREVENT + </span><span class="s2">4</span>
+<span class="s1">pygame.time.set_timer(BG_CHANGE, </span><span class="s2">7500</span><span class="s1">)</span>
+
+<span class="s1">floor_surface_swamp = pygame.image.load(</span><span class="s4">&quot;assets/floor/floor_swamp.png&quot;</span><span class="s1">).convert_alpha()</span>
+<span class="s1">floor_surface_war = pygame.image.load(</span><span class="s4">&quot;assets/floor/floor_war.png&quot;</span><span class="s1">).convert_alpha()</span>
+<span class="s1">floor_surface_snow = pygame.image.load(</span><span class="s4">&quot;assets/floor/floor_snow.png&quot;</span><span class="s1">).convert_alpha()</span>
+<span class="s1">floor_surface_desert = pygame.image.load(</span><span class="s4">&quot;assets/floor/floor_desert.png&quot;</span><span class="s1">).convert_alpha()</span>
+<span class="s1">floor_frames = [floor_surface_swamp, floor_surface_war, floor_surface_snow, floor_surface_desert]</span>
+<span class="s1">floor_index = </span><span class="s2">0</span>
+<span class="s1">floor_surface = floor_frames[floor_index]</span>
+<span class="s1">floor_surface = pygame.transform.scale(floor_surface, (</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))</span>
+<span class="s1">floor_x_pos = </span><span class="s2">0</span>
+
+<span class="s1">FLOOR_CHANGE = pygame.USEREVENT + </span><span class="s2">5</span>
+<span class="s1">pygame.time.set_timer(FLOOR_CHANGE, </span><span class="s2">7500</span><span class="s1">)</span>
+
+<span class="s1">mc_run1 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_run/mc1.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_run2 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_run/mc2.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_run3 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_run/mc3.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_run4 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_run/mc4.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_run5 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_run/mc5.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_run6 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_run/mc6.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_frames = [mc_run1, mc_run2, mc_run3, mc_run4, mc_run5, mc_run6]</span>
+<span class="s1">mc_index = </span><span class="s2">0</span>
+<span class="s1">mc_surface = mc_frames[mc_index]</span>
+<span class="s1">mc_surface = pygame.transform.scale(mc_surface, (</span><span class="s2">130</span><span class="s1">, </span><span class="s2">150</span><span class="s1">))</span>
+<span class="s1">mc_rect = mc_surface.get_rect(center=(</span><span class="s2">100</span><span class="s1">, </span><span class="s2">560</span><span class="s1">))</span>
+
+<span class="s1">MC_RUN = pygame.USEREVENT + </span><span class="s2">1</span>
+<span class="s1">pygame.time.set_timer(MC_RUN, </span><span class="s2">125</span><span class="s1">)</span>
+
+<span class="s1">mc_jump1 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_jump/mc_jump_3.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_jump2 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_jump/mc_jump_3.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_jump3 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_jump/mc_jump_4.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_jump4 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_jump/mc_jump_4.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_jump5 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_jump/mc_jump_5.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_jump6 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_jump/mc_jump_5.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_jump_frames = [mc_jump1, mc_jump2, mc_jump3, mc_jump4, mc_jump5, mc_jump6]</span>
+<span class="s1">mc_jump_index = </span><span class="s2">0</span>
+<span class="s1">mc_surface = mc_jump_frames[mc_jump_index]</span>
+<span class="s1">mc_surface = pygame.transform.scale(mc_surface, (</span><span class="s2">130</span><span class="s1">, </span><span class="s2">150</span><span class="s1">))</span>
+<span class="s1">mc_rect = mc_surface.get_rect(center=(</span><span class="s2">100</span><span class="s1">, </span><span class="s2">560</span><span class="s1">))</span>
+
+<span class="s1">MC_JUMP = pygame.USEREVENT + </span><span class="s2">2</span>
+<span class="s1">pygame.time.set_timer(MC_JUMP, </span><span class="s2">175</span><span class="s1">)</span>
+
+<span class="s1">mc_death1 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_death/mc_death_1.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_death2 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_death/mc_death_2.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_death3 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_death/mc_death_3.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_death4 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_death/mc_death_4.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_death5 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_death/mc_death_5.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_death6 = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/mc_death/mc_death_6.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">mc_death_frames = [mc_death1, mc_death2, mc_death3, mc_death4, mc_death5, mc_death6]</span>
+<span class="s1">mc_death_index = </span><span class="s2">0</span>
+<span class="s1">mc_surface = mc_death_frames[mc_death_index]</span>
+<span class="s1">mc_surface = pygame.transform.scale(mc_surface, (</span><span class="s2">130</span><span class="s1">, </span><span class="s2">150</span><span class="s1">))</span>
+<span class="s1">mc_rect = mc_surface.get_rect(center=(</span><span class="s2">100</span><span class="s1">, </span><span class="s2">560</span><span class="s1">))</span>
+<span class="s1">MC_DEATH = pygame.USEREVENT + </span><span class="s2">3</span>
+<span class="s1">pygame.time.set_timer(MC_DEATH, </span><span class="s2">175</span><span class="s1">)</span>
+
+<span class="s1">pipe_surface = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/pipe.png'</span><span class="s1">))</span>
+<span class="s1">pipe_list = []</span>
+<span class="s1">pipe_height = [</span><span class="s2">275</span><span class="s1">, </span><span class="s2">300</span><span class="s1">, </span><span class="s2">425</span><span class="s1">, </span><span class="s2">600</span><span class="s1">, </span><span class="s2">850</span><span class="s1">]</span>
+<span class="s1">SPAWNPIPE = pygame.USEREVENT</span>
+<span class="s1">pygame.time.set_timer(SPAWNPIPE, </span><span class="s2">1750</span><span class="s1">)</span>
+
+<span class="s1">bird_surface = pygame.transform.scale2x(pygame.image.load(</span><span class="s4">'assets/bird/bird_1.png'</span><span class="s1">)).convert_alpha()</span>
+<span class="s1">bird_surface = pygame.transform.scale(bird_surface, (</span><span class="s2">50</span><span class="s1">, </span><span class="s2">50</span><span class="s1">))</span>
+<span class="s1">bird_list = []</span>
+<span class="s1">bird_altitude = [</span><span class="s2">0</span><span class="s1">, </span><span class="s2">250</span><span class="s1">, </span><span class="s2">250</span><span class="s1">, </span><span class="s2">550</span><span class="s1">]</span>
+<span class="s1">SPAWNBIRD = pygame.USEREVENT + </span><span class="s2">6</span>
+<span class="s1">pygame.time.set_timer(SPAWNBIRD, </span><span class="s2">3000</span><span class="s1">)</span>
+
+<span class="s1">cover_surface = pygame.image.load(</span><span class="s4">&quot;assets/cover.png&quot;</span><span class="s1">).convert_alpha()</span>
+<span class="s1">cover_rect = cover_surface.get_rect(center=(</span><span class="s2">640</span><span class="s1">, </span><span class="s2">360</span><span class="s1">))</span>
+
+<span class="s1">jump_sound = pygame.mixer.Sound(</span><span class="s4">&quot;assets/sfx/jump2.wav&quot;</span><span class="s1">)</span>
+<span class="s1">death_sound = pygame.mixer.Sound(</span><span class="s4">&quot;assets/sfx/death_sound.mp3&quot;</span><span class="s1">)</span>
+<span class="s1">death_sound.set_volume(</span><span class="s2">0.10</span><span class="s1">)</span>
+<span class="s1">score_sound = pygame.mixer.Sound(</span><span class="s4">&quot;assets/sfx/score_sound2.mp3&quot;</span><span class="s1">)</span>
+<span class="s1">score_sound.set_volume(</span><span class="s2">0.10</span><span class="s1">)</span>
+
+<span class="s1">pygame.mixer.music.load(</span><span class="s4">&quot;assets/sfx/bg_music_swamp.mp3&quot;</span><span class="s1">)</span>
+<span class="s1">pygame.mixer.music.set_volume(</span><span class="s2">0.1</span><span class="s1">)</span>
+
+<span class="s3"># Game Variables</span>
+<span class="s1">gravity = </span><span class="s2">0.25</span>
+<span class="s1">mc_movement = </span><span class="s2">0</span>
+<span class="s1">jump_or_not = </span><span class="s0">False</span>
+<span class="s1">can_jump = </span><span class="s2">3</span>
+<span class="s1">death = </span><span class="s0">False</span>
+<span class="s1">game_active = </span><span class="s0">False</span>
+<span class="s1">can_score = </span><span class="s0">True</span>
+<span class="s1">score = </span><span class="s2">0</span>
+<span class="s1">high_score = </span><span class="s2">0</span>
+<span class="s1">speed_factor = </span><span class="s2">1</span>
+
+<span class="s0">while True</span><span class="s1">:</span>
+    <span class="s0">for </span><span class="s1">event </span><span class="s0">in </span><span class="s1">pygame.event.get():</span>
+        <span class="s0">if </span><span class="s1">event.type == pygame.QUIT:</span>
+            <span class="s1">pygame.quit()</span>
+            <span class="s1">sys.exit()</span>
+
+        <span class="s0">if </span><span class="s1">event.type == pygame.KEYDOWN:</span>
+            <span class="s0">if </span><span class="s1">event.key == pygame.K_SPACE </span><span class="s0">and </span><span class="s1">game_active == </span><span class="s0">True and </span><span class="s1">can_jump &gt; </span><span class="s2">0</span><span class="s1">:  </span><span class="s3"># The player has 3 jumps</span>
+                <span class="s1">jump_or_not = </span><span class="s0">True</span>
+                <span class="s1">can_jump -= </span><span class="s2">1</span>
+                <span class="s1">mc_movement = </span><span class="s2">0</span>
+                <span class="s1">mc_movement -= </span><span class="s2">9</span>
+                <span class="s1">jump_sound.play()</span>
+
+            <span class="s0">if </span><span class="s1">event.key == pygame.K_SPACE </span><span class="s0">and </span><span class="s1">game_active == </span><span class="s0">False</span><span class="s1">:  </span><span class="s3"># Game Reset</span>
+                <span class="s1">bg_surface = pygame.transform.scale(bg_surface_swamp, (</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))</span>
+                <span class="s1">floor_surface = pygame.transform.scale(floor_surface_swamp, (</span><span class="s2">1280</span><span class="s1">, </span><span class="s2">720</span><span class="s1">))</span>
+                <span class="s1">pygame.mixer.music.load(</span><span class="s4">&quot;assets/sfx/bg_music_swamp.mp3&quot;</span><span class="s1">)</span>
+                <span class="s1">pygame.mixer.music.play(-</span><span class="s2">1</span><span class="s1">)</span>
+                <span class="s1">game_active = </span><span class="s0">True</span>
+                <span class="s1">death = </span><span class="s0">False</span>
+                <span class="s1">mc_death_index = </span><span class="s2">0</span>
+                <span class="s1">mc_rect.center = (</span><span class="s2">100</span><span class="s1">, </span><span class="s2">560</span><span class="s1">)</span>
+                <span class="s1">bird_list.clear()</span>
+                <span class="s1">pipe_list.clear()</span>
+                <span class="s1">score = </span><span class="s2">0</span>
+                <span class="s1">speed_factor = </span><span class="s2">1</span>
+
+        <span class="s0">if </span><span class="s1">event.type == BG_CHANGE </span><span class="s0">and </span><span class="s1">game_active == </span><span class="s0">True</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">bg_index &lt; </span><span class="s2">3</span><span class="s1">:</span>
+                <span class="s1">bg_index += </span><span class="s2">1</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">bg_index = </span><span class="s2">0</span>
+
+            <span class="s1">bg_surface = bg_and_music_change()</span>
+
+        <span class="s0">if </span><span class="s1">event.type == FLOOR_CHANGE </span><span class="s0">and </span><span class="s1">game_active == </span><span class="s0">True</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">floor_index &lt; </span><span class="s2">3</span><span class="s1">:</span>
+                <span class="s1">floor_index += </span><span class="s2">1</span>
+            <span class="s0">else</span><span class="s1">:</span>
+                <span class="s1">floor_index = </span><span class="s2">0</span>
+
+            <span class="s1">floor_surface = floor_change()</span>
+
+        <span class="s0">if </span><span class="s1">event.type == SPAWNPIPE:</span>
+            <span class="s1">pipe_list.extend(create_pipe())</span>
+
+        <span class="s0">if </span><span class="s1">event.type == SPAWNBIRD:</span>
+            <span class="s1">bird_list.append(create_bird())</span>
+
+        <span class="s0">if </span><span class="s1">death == </span><span class="s0">True</span><span class="s1">:</span>
+            <span class="s1">bg_index = </span><span class="s2">0</span>
+            <span class="s1">floor_index = </span><span class="s2">0</span>
+            <span class="s0">if </span><span class="s1">event.type == MC_DEATH:</span>
+                <span class="s0">if </span><span class="s1">mc_death_index &lt; </span><span class="s2">5</span><span class="s1">:</span>
+                    <span class="s1">mc_death_index += </span><span class="s2">1</span>
+                <span class="s1">mc_surface, mc_rect = mc_animation_death()</span>
+
+
+        <span class="s0">elif </span><span class="s1">jump_or_not == </span><span class="s0">True and </span><span class="s1">death == </span><span class="s0">False</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">event.type == MC_JUMP:</span>
+                <span class="s0">if </span><span class="s1">mc_jump_index &lt; </span><span class="s2">5</span><span class="s1">:</span>
+                    <span class="s1">mc_jump_index += </span><span class="s2">1</span>
+                <span class="s0">else</span><span class="s1">:</span>
+                    <span class="s1">mc_jump_index = </span><span class="s2">0</span>
+
+                <span class="s1">mc_surface, mc_rect = mc_animation_jump()</span>
+        <span class="s0">else</span><span class="s1">:</span>
+            <span class="s0">if </span><span class="s1">event.type == MC_RUN:</span>
+                <span class="s0">if </span><span class="s1">mc_index &lt; </span><span class="s2">5</span><span class="s1">:</span>
+                    <span class="s1">mc_index += </span><span class="s2">1</span>
+                <span class="s0">else</span><span class="s1">:</span>
+                    <span class="s1">mc_index = </span><span class="s2">0</span>
+
+                <span class="s1">mc_surface, mc_rect = mc_animation()</span>
+
+    <span class="s1">screen.blit(bg_surface, (</span><span class="s2">0</span><span class="s1">, </span><span class="s2">0</span><span class="s1">))</span>
+
+    <span class="s0">if </span><span class="s1">game_active:</span>
+
+        <span class="s0">if </span><span class="s1">check_collision_bird(bird_list) == </span><span class="s0">False or </span><span class="s1">check_collision(pipe_list) == </span><span class="s0">False</span><span class="s1">:</span>
+            <span class="s1">game_active = </span><span class="s0">False</span>
+            <span class="s1">pygame.mixer.music.stop()</span>
+
+        <span class="s3"># Main Character</span>
+        <span class="s1">screen.blit(mc_surface, mc_rect)</span>
+        <span class="s1">mc_movement += gravity</span>
+        <span class="s1">mc_rect.centery += mc_movement</span>
+        <span class="s0">if </span><span class="s1">mc_rect.centery &gt;= </span><span class="s2">560</span><span class="s1">:</span>
+            <span class="s1">mc_rect.centery = </span><span class="s2">560</span>
+            <span class="s1">can_jump = </span><span class="s2">3</span>
+            <span class="s1">jump_or_not = </span><span class="s0">False</span>
+        <span class="s0">elif </span><span class="s1">mc_rect.centery &lt;= </span><span class="s2">20</span><span class="s1">:</span>
+            <span class="s1">mc_rect.centery = </span><span class="s2">20</span>
+
+        <span class="s3"># Pipes</span>
+        <span class="s1">pipe_list = move_pipes(pipe_list)</span>
+        <span class="s1">draw_pipes(pipe_list)</span>
+        <span class="s1">check_collision(pipe_list)</span>
+
+        <span class="s3"># Birds</span>
+        <span class="s1">bird_list = move_birds(bird_list)</span>
+        <span class="s1">draw_birds(bird_list)</span>
+        <span class="s1">check_collision_bird(bird_list)</span>
+
+        <span class="s3"># Score</span>
+        <span class="s1">pipe_score_check()</span>
+        <span class="s1">score_display(</span><span class="s4">'main_game'</span><span class="s1">)</span>
+
+        <span class="s3"># Floor Speed</span>
+        <span class="s1">floor_x_pos -= </span><span class="s2">4 </span><span class="s1">* speed_factor</span>
+
+        <span class="s3"># Speed Factor</span>
+        <span class="s1">speed_factor += </span><span class="s2">0.00015</span>
+
+    <span class="s0">else</span><span class="s1">:</span>
+        <span class="s1">mc_movement += gravity</span>
+        <span class="s1">mc_rect.centery += mc_movement</span>
+        <span class="s0">if </span><span class="s1">mc_rect.centery &gt;= </span><span class="s2">555</span><span class="s1">:</span>
+            <span class="s1">mc_rect.centery = </span><span class="s2">555</span>
+        <span class="s1">screen.blit(mc_surface, mc_rect)</span>
+        <span class="s1">screen.blit(cover_surface, cover_rect)</span>
+        <span class="s1">high_score = update_score(score, high_score)</span>
+        <span class="s1">score_display(</span><span class="s4">'game_over'</span><span class="s1">)</span>
+
+        <span class="s3"># Floor Speed</span>
+        <span class="s1">floor_x_pos -= </span><span class="s2">1</span>
+
+    <span class="s3"># Floor</span>
+    <span class="s1">draw_floor()</span>
+    <span class="s0">if </span><span class="s1">floor_x_pos &lt;= -</span><span class="s2">1280</span><span class="s1">:</span>
+        <span class="s1">floor_x_pos = </span><span class="s2">0</span>
+
+    <span class="s1">pygame.display.update()</span>
+    <span class="s1">clock.tick(</span><span class="s2">120</span><span class="s1">)</span>
+</pre>
+</body>
+</html>
